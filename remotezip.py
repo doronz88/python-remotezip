@@ -192,7 +192,11 @@ class RemoteFetcher:
         res.raise_for_status()
         if 'Content-Range' not in res.headers:
             raise RangeNotSupported("The server doesn't support range requests")
-        return res.raw, res.headers['Content-Range']
+        buffer = res.raw
+        if hasattr(buffer, 'decode_content'):
+            # Special case for urllib3
+            buffer.decode_content = True
+        return buffer, res.headers['Content-Range']
 
     def prepare_request(self, data_range=None):
         kwargs = dict(self._kwargs)
